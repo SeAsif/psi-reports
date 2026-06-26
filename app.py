@@ -18,6 +18,14 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
 html, body, [class*="css"] { font-family: 'IBM Plex Sans', sans-serif; }
 .stApp { background: #080810; color: #e0e0f0; }
+
+/* Hide Streamlit Watermarks and Menus */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+.viewerBadge_container__1QSob {display: none !important;}
+.styles_viewerBadge__1yB5_ {display: none !important;}
+.stApp [data-testid="stToolbar"] {display: none;}
 h1, h2, h3 { font-family: 'IBM Plex Mono', monospace !important; color: #00e5ff !important; }
 .block-container { padding-top: 1.5rem; }
 .step-card { background: #0f0f1c; border: 1px solid #1a1a30; border-radius: 8px; padding: 1.2rem 1.5rem; margin-bottom: 0.8rem; }
