@@ -1,0 +1,9 @@
+streamlit
+pandas
+openpyxl
+google-cloud-bigquery
+google-cloud-bigquery-storage
+db-dtypes
+pdfplumber
+anthropic
+gspread

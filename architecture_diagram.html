@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Samsung Purchases Pipeline — Architecture & Flow Diagrams</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            background-color: #0d1117;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #c9d1d9;
+            padding: 3rem 1.5rem;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* ── Page Header ── */
+        .page-header {
+            text-align: center;
+            margin-bottom: 3.5rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #21262d;
+        }
+        .page-header h1 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: #f0f6fc;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.5rem;
+        }
+        .page-header p {
+            font-size: 1.05rem;
+            color: #8b949e;
+            font-weight: 400;
+        }
+        .badge {
+            display: inline-block;
+            background: #1f6feb22;
+            color: #58a6ff;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 0.25rem 0.7rem;
+            border-radius: 999px;
+            border: 1px solid #1f6feb44;
+            margin-bottom: 1rem;
+        }
+
+        /* ── Section ── */
+        .section {
+            margin-bottom: 4rem;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 0.4rem;
+        }
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #1f6feb;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .section-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #f0f6fc;
+        }
+        .section-desc {
+            color: #8b949e;
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            padding-left: 2.8rem;
+            line-height: 1.6;
+        }
+
+        /* ── Diagram Card ── */
+        .diagram-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+            overflow-x: auto;
+        }
+        .diagram-card .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* ── Legend ── */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            margin-top: 1.2rem;
+            padding: 1rem 1.5rem;
+            background: #0d1117;
+            border: 1px solid #21262d;
+            border-radius: 8px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: #8b949e;
+        }
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        /* ── Footer ── */
+        .footer {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #21262d;
+            color: #484f58;
+            font-size: 0.8rem;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            body { padding: 1.5rem 1rem; }
+            .page-header h1 { font-size: 1.8rem; }
+            .diagram-card { padding: 1.2rem; }
+        }
+
+        /* ══════════════════════════════════════════
+           PRINT / PDF EXPORT STYLES
+           Each section on its own page, light theme
+           ══════════════════════════════════════════ */
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 1.5cm;
+            }
+
+            body {
+                background: #ffffff !important;
+                color: #1a1a1a !important;
+                padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .container {
+                max-width: 100% !important;
+            }
+
+            /* ── Title page ── */
+            .page-header {
+                page-break-after: always;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 90vh;
+                border-bottom: none;
+                margin-bottom: 0;
+                padding-bottom: 0;
+            }
+            .page-header h1 {
+                color: #0d1117 !important;
+                font-size: 3rem;
+            }
+            .page-header p {
+                color: #555 !important;
+                font-size: 1.3rem;
+            }
+            .badge {
+                background: #eef2ff !important;
+                color: #3730a3 !important;
+                border-color: #a5b4fc !important;
+                font-size: 0.8rem;
+                padding: 0.4rem 1rem;
+            }
+
+            /* ── Each section = one page ── */
+            .section {
+                page-break-before: always;
+                page-break-inside: avoid;
+                margin-bottom: 0;
+            }
+
+            .section-header h2 {
+                color: #0d1117 !important;
+            }
+            .section-number {
+                background: #1f6feb !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .section-desc {
+                color: #444 !important;
+            }
+
+            /* ── Diagram cards in print ── */
+            .diagram-card {
+                background: #f8fafc !important;
+                border: 2px solid #cbd5e1 !important;
+                box-shadow: none !important;
+                border-radius: 8px;
+                padding: 1.5rem;
+                page-break-inside: avoid;
+            }
+
+            /* ── Legend in print ── */
+            .legend {
+                background: #f1f5f9 !important;
+                border-color: #cbd5e1 !important;
+                page-break-inside: avoid;
+            }
+            .legend-item {
+                color: #334155 !important;
+            }
+
+            /* ── Footer ── */
+            .footer {
+                page-break-before: avoid;
+                border-top-color: #cbd5e1 !important;
+                color: #94a3b8 !important;
+                margin-top: 2rem;
+            }
+
+            /* ── Mermaid SVG sizing for print ── */
+            .mermaid svg {
+                max-width: 100% !important;
+                max-height: 75vh !important;
+                height: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- ═══ PAGE HEADER ═══ -->
+        <div class="page-header">
+            <div class="badge">Technical Architecture Document</div>
+            <h1>Samsung Purchases Pipeline</h1>
+            <p>System Architecture, Sequence Flow & Data Pipeline — PSI Group</p>
+        </div>
+
+        <!-- ═══ SECTION 1: ARCHITECTURE FLOW ═══ -->
+        <div class="section">
+            <div class="section-header">
+                <span class="section-number">1</span>
+                <h2>System Architecture — Step-by-Step Workflow</h2>
+            </div>
+            <p class="section-desc">
+                End-to-end view of how data flows through the system. The Business User uploads Samsung
+                promotion PDFs into the Streamlit app, which parses, validates, and stores data in BigQuery,
+                then syncs summaries back to Google Sheets for the team.
+            </p>
+            <div class="diagram-card">
+                <div class="mermaid">
+flowchart TD
+    User(("Business User"))
+
+    subgraph STEP1 ["STEP 1 — Ground Truth Migration"]
+        SQL["SQL Server\n10.254.10.27\nIMEI Database"]
+        BQ1[("BigQuery\nSales & Inventory")]
+    end
+
+    subgraph STEP2 ["STEP 2 — Upload Promotion PDF"]
+        PDF["Samsung Promo PDF\nBulletin"]
+        APP["Streamlit App\napp.py"]
+    end
+
+    subgraph STEP3 ["STEP 3 — SKU Matching"]
+        MODELS["Google Sheets\nMODELS Config Tab"]
+    end
+
+    subgraph STEP4 ["STEP 4 — Validation & Logging"]
+        BQ2[("BigQuery\nPromotions & Logs")]
+    end
+
+    subgraph STEP5 ["STEP 5 — Business Reporting"]
+        SHEETS["Google Sheets\nFinal Summary Reports"]
+    end
+
+    SQL -->|"1. CSV export & load"| BQ1
+    User -->|"2. Uploads PDF"| PDF
+    PDF -->|"Parsed via pdfplumber"| APP
+    APP -->|"3. Looks up SKUs"| MODELS
+    MODELS -.->|"Returns SKU list"| APP
+    APP -->|"4. Inserts promo data"| BQ2
+    BQ1 -.->|"Reads inventory"| APP
+    APP -->|"5. Syncs reports"| SHEETS
+    SHEETS -.->|"Views reports"| User
+
+    classDef default fill:#1e293b,stroke:#334155,stroke-width:1px,color:#e2e8f0
+    classDef dbNode fill:#3b1a1a,stroke:#ef4444,stroke-width:2px,color:#fca5a5
+    classDef appNode fill:#0a3622,stroke:#22c55e,stroke-width:2px,color:#86efac
+    classDef sheetNode fill:#172554,stroke:#3b82f6,stroke-width:2px,color:#93c5fd
+    classDef pdfNode fill:#422006,stroke:#f59e0b,stroke-width:2px,color:#fcd34d
+    classDef userNode fill:#312e81,stroke:#818cf8,stroke-width:3px,color:#c7d2fe
+
+    class SQL dbNode
+    class BQ1 dbNode
+    class BQ2 dbNode
+    class APP appNode
+    class MODELS sheetNode
+    class SHEETS sheetNode
+    class PDF pdfNode
+    class User userNode
+                </div>
+                <div class="legend">
+                    <div class="legend-item"><div class="legend-dot" style="background:#818cf8"></div> User</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div> Databases (SQL Server / BigQuery)</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div> Application (Streamlit)</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div> Google Sheets</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div> External Input (PDF)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ SECTION 2: SEQUENCE DIAGRAM ═══ -->
+        <div class="section">
+            <div class="section-header">
+                <span class="section-number">2</span>
+                <h2>Sequence Diagram — Promotion Upload Flow</h2>
+            </div>
+            <p class="section-desc">
+                Step-by-step interaction sequence when a Business User uploads a new Samsung promotion PDF.
+                Shows the exact order of calls between the user, app, databases, and sheets — including
+                duplicate checking, family-code expansion, and multi-sheet sync.
+            </p>
+            <div class="diagram-card">
+                <div class="mermaid">
+sequenceDiagram
+    actor User as Business User
+    participant App as Streamlit App
+    participant PDF as PDF Parser
+    participant BQ as Google BigQuery
+    participant GS as Google Sheets
+
+    Note over User,GS: Promotion Upload Workflow
+
+    User->>App: Upload Samsung Promotion PDF
+    App->>PDF: parse_promotion_pdf()
+    PDF-->>App: Reference No, Title, Rows, Dates
+
+    App->>BQ: check_promotion_rows() — find duplicates
+    BQ-->>App: Existing rows for this promo
+
+    App-->>User: Show preview — new / duplicate / updated rows
+
+    User->>App: Click "Push to BigQuery"
+    App->>BQ: push_promotion_rows() — INSERT new rows
+    App->>BQ: Log to promotion_logs table
+    BQ-->>App: Success + upload_id
+
+    App-->>User: Show extension & price-change analysis
+
+    User->>App: Click "Sync to BACKWORKING sheet"
+    App->>GS: Read MODELS tab for SKU expansion
+    GS-->>App: Return all SKUs for family codes
+
+    App->>App: expand_family_rows_for_sync()
+    Note right of App: Split qty evenly across SKUs
+
+    App->>GS: Write to BACKWORKING sheet (A:B, D:J)
+    App->>GS: Write to SYNCED sheet (mirror)
+    App->>GS: Write to LEGACY sheet (mirror)
+    GS-->>App: Sync complete
+
+    App-->>User: Done — rows synced to all sheets
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ SECTION 3: DATA FLOW DIAGRAM ═══ -->
+        <div class="section">
+            <div class="section-header">
+                <span class="section-number">3</span>
+                <h2>Data Flow Diagram — One-Way Pipeline</h2>
+            </div>
+            <p class="section-desc">
+                The data pipeline is strictly ONE-WAY. SQL Server is the untouchable source of truth.
+                Data flows forward into BigQuery (the cloud warehouse), and reports flow out to Google Sheets.
+                Nothing ever writes back to SQL Server. The app has no SQL Server connection at all.
+            </p>
+            <div class="diagram-card">
+                <div class="mermaid">
+flowchart LR
+    subgraph SOURCE ["SOURCE OF TRUTH"]
+        SQL["SQL Server\n10.254.10.27"]
+    end
+
+    subgraph INPUTS ["USER INPUTS"]
+        INV["Invoice Excel\n(.xlsx)"]
+        PDF2["Promotion PDF\nBulletin"]
+    end
+
+    subgraph WAREHOUSE ["DATA WAREHOUSE"]
+        direction TB
+        P[("purchases")]
+        S[("sales\nactual_sales")]
+        PR[("promotion_data\npromotion_sm")]
+        LG[("promotion_logs\nai_chat_write_logs")]
+        OB[("opening_balance\nreport_models")]
+    end
+
+    subgraph APP2 ["STREAMLIT APP"]
+        PIPE["Pipeline Tab"]
+        PROMO["Promotion Tab"]
+        FINAL["Final Summary"]
+        CLOSE["Closing Tab"]
+        CHAT["AI Chat"]
+    end
+
+    subgraph OUTPUTS ["BUSINESS REPORTS"]
+        BW["BACKWORKING\nSheet"]
+        SY["SYNCED\nSheet"]
+        CL["Client Copy\nSheet"]
+    end
+
+    SQL ==>|"One-time CSV export\n(manual)"| P
+    SQL ==>|"One-time CSV export\n(manual)"| S
+
+    INV -->|"Upload & parse"| PIPE
+    PDF2 -->|"Upload & parse"| PROMO
+
+    PIPE -->|"Stage & push"| P
+    PROMO -->|"Validate & insert"| PR
+    PROMO -->|"Audit trail"| LG
+    CHAT -->|"Confirmed writes"| LG
+
+    P -.->|"Read"| FINAL
+    S -.->|"Read"| FINAL
+    PR -.->|"Read"| FINAL
+    OB -.->|"Read"| FINAL
+    P -.->|"Read"| CLOSE
+
+    FINAL -->|"Sync reports"| BW
+    PROMO -->|"Sync promos"| BW
+    BW -->|"Auto-mirror"| SY
+    BW -.->|"Manual copy"| CL
+
+    classDef default fill:#1e293b,stroke:#334155,stroke-width:1px,color:#e2e8f0
+    classDef srcNode fill:#3b1a1a,stroke:#ef4444,stroke-width:2px,color:#fca5a5
+    classDef whNode fill:#1a1a2e,stroke:#a78bfa,stroke-width:2px,color:#c4b5fd
+    classDef appNode fill:#0a3622,stroke:#22c55e,stroke-width:2px,color:#86efac
+    classDef outNode fill:#172554,stroke:#3b82f6,stroke-width:2px,color:#93c5fd
+    classDef inputNode fill:#422006,stroke:#f59e0b,stroke-width:2px,color:#fcd34d
+
+    class SQL srcNode
+    class P whNode
+    class S whNode
+    class PR whNode
+    class LG whNode
+    class OB whNode
+    class PIPE appNode
+    class PROMO appNode
+    class FINAL appNode
+    class CLOSE appNode
+    class CHAT appNode
+    class BW outNode
+    class SY outNode
+    class CL outNode
+    class INV inputNode
+    class PDF2 inputNode
+                </div>
+                <div class="legend">
+                    <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div> Source of Truth (SQL Server)</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#a78bfa"></div> BigQuery Tables</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div> App Tabs</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div> Google Sheets (Output)</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div> User Uploads</div>
+                    <div class="legend-item">
+                        <svg width="30" height="12"><line x1="0" y1="6" x2="30" y2="6" stroke="#8b949e" stroke-width="2"/></svg> Data write
+                    </div>
+                    <div class="legend-item">
+                        <svg width="30" height="12"><line x1="0" y1="6" x2="30" y2="6" stroke="#8b949e" stroke-width="2" stroke-dasharray="4"/></svg> Data read
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ FOOTER ═══ -->
+        <div class="footer">
+            <p>Samsung Purchases Pipeline — PSI Group &nbsp;|&nbsp; Architecture Document &nbsp;|&nbsp; Generated June 2026</p>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                darkMode: true,
+                background: 'transparent',
+                primaryColor: '#1e293b',
+                primaryTextColor: '#e2e8f0',
+                primaryBorderColor: '#334155',
+                lineColor: '#64748b',
+                secondaryColor: '#0f172a',
+                tertiaryColor: '#1e293b',
+                fontFamily: 'Inter',
+                fontSize: '14px',
+                clusterBkg: '#161b2266',
+                clusterBorder: '#30363d',
+
+                actorBkg: '#312e81',
+                actorBorder: '#818cf8',
+                actorTextColor: '#c7d2fe',
+                actorLineColor: '#475569',
+
+                activationBkgColor: '#1e293b',
+                activationBorderColor: '#475569',
+
+                signalColor: '#94a3b8',
+                signalTextColor: '#e2e8f0',
+
+                noteBkgColor: '#1c1917',
+                noteBorderColor: '#44403c',
+                noteTextColor: '#d6d3d1',
+
+                sequenceNumberColor: '#f0f6fc'
+            },
+            flowchart: {
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                mirrorActors: false,
+                actorMargin: 80,
+                messageMargin: 40
+            }
+        });
+    </script>
+</body>
+</html>
